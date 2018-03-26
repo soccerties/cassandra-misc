@@ -14,7 +14,7 @@
     - "{{ cassandra_data_dir }}"
     - "{{ cassandra_commitlog_dir }}"
     - "{{ cassandra_saved_caches_dir }}"
-    - "{{ cassandra_hins_dir }}"
+    - "{{ cassandra_hints_dir }}"
 
 - name: set permissions
   file:
