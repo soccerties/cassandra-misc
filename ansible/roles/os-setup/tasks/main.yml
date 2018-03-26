@@ -1,0 +1,53 @@
+---
+
+- name: Disable Swap
+  command: swapoff -a
+
+- name: Remove current swaps from fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '^/[\S]+\s+none\s+swap '
+    state: absent
+
+- name: add sysctl.conf values
+  lineinfile:
+    dest: /etc/sysctl.conf
+    line: "{{ item }}"
+  with_items:
+    - "vm.max_map_count = 1048575"
+    - "net.ipv4.tcp_keepalive_time=60"
+    - "net.ipv4.tcp_keepalive_probes=3"
+    - "net.ipv4.tcp_keepalive_intvl=10"
+    - "net.core.rmem_max=16777216"
+    - "net.core.wmem_max=16777216"
+    - "net.core.rmem_default=16777216"
+    - "net.core.wmem_default=16777216"
+    - "net.core.optmem_max=40960"
+    - "net.ipv4.tcp_rmem=4096 87380 16777216"
+    - "net.ipv4.tcp_wmem=4096 65536 16777216"
+    - "vm.zone_reclaim_mode=0"
+
+- name: load sysctl settings
+  shell: sysctl -p /etc/sysctl.conf
+
+- name: set ulimits
+  copy:
+    src: cassandra.conf
+    dest: /etc/security/limits.d/90-cassandra.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: init file to disable Hugepages
+  copy:
+    src: disable-thp
+    dest: /etc/init.d/disable-thp
+    owner: root
+    group: root
+    mode: 0755
+
+- name: disable Hugepages and set to run on boot
+  service:
+    name: disable-thp
+    state: started
+    enabled: yes
