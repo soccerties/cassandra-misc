@@ -10,12 +10,12 @@
 
     - name: stop cassandra
       service:
-        name: dse
+        name: cassandra
         state: stopped
 
     - name: start cassandra
       service:
-        name: dse
+        name: cassandra
         state: started
 
     - name: wait for cassandra jmx port
@@ -37,4 +37,4 @@
 
     - name: continue?
       pause:
-        prompt: "Continue with nest node?"
+        prompt: "Continue with next node?"
