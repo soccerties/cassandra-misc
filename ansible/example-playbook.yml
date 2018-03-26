@@ -1,0 +1,10 @@
+---
+
+- name: cassandra
+  hosts: all
+  user: ec2-user
+  become: true
+  roles:
+    - os-setup
+    - cassandra
+    - cassandra-exporter
