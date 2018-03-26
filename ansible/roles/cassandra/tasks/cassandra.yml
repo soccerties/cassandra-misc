@@ -1,0 +1,80 @@
+---
+
+- name: "install {{cassandra_package_name}}-{{cassandra_version}}"
+  yum:
+    name: "{{cassandra_package_name}}-{{cassandra_version}}"
+    state: present
+
+- name: make dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ cassandra_log_dir }}"
+    - "{{ cassandra_data_dir }}"
+    - "{{ cassandra_commitlog_dir }}"
+    - "{{ cassandra_saved_caches_dir }}"
+    - "{{ cassandra_hins_dir }}"
+
+- name: set permissions
+  file:
+    path: "{{ cassandra_root_dir }}"
+    owner: cassandra
+    group: cassandra
+    state: directory
+    recurse: yes
+
+- name: copy cassandra.yaml template
+  template:
+    src: "{{cassandra_version}}-cassandra.yaml.j2"
+    dest: "{{ cassandra_conf_dir }}/cassandra.yaml"
+
+- name: copy cassandra-rackdc.properties template
+  template:
+    src: "{{cassandra_version}}-cassandra-rackdc.properties.j2"
+    dest: "{{ cassandra_conf_dir }}/cassandra-rackdc.properties"
+
+- name: copy cassandra-env.sh template
+  template:
+    src: "{{cassandra_version}}-cassandra-env.sh.j2"
+    dest: "{{ cassandra_conf_dir }}/cassandra-env.sh"
+
+- name: copy logback.xml template
+  template:
+    src: "{{cassandra_version}}-logback.xml.j2"
+    dest: "{{ cassandra_conf_dir }}/logback.xml"
+
+- name: start cassandra
+  service:
+    name: "{{ cassandra_service_name }}"
+    state: started
+    enabled: true
+
+- name: wait for cassandra jmx port
+  wait_for:
+    port: 7199
+    delay: 5
+
+- name: nodetool info
+  command: nodetool info
+  register: cassandra_info
+  until: cassandra_info|succeeded
+  retries: 20
+  delay: 1
+  ignore_errors: true
+
+- name: print status
+  debug:
+    msg: "{{ cassandra_info.stdout_lines }}"
+
+- name: nodetool status
+  command: nodetool status
+  register: cassandra_status
+  until: cassandra_status|succeeded
+  retries: 20
+  delay: 1
+  ignore_errors: true
+
+- name: print status
+  debug:
+    msg: "{{ cassandra_status.stdout_lines }}"

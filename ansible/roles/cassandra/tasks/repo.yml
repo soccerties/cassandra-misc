@@ -1,0 +1,17 @@
+---
+
+- name: add repo key
+  rpm_key:
+    state: present
+    key: https://www.apache.org/dist/cassandra/KEYS
+
+- name: add cassandra repo
+  yum_repository:
+    name: cassandra
+    file: cassandra 
+    description: Apache Cassandra
+    baseurl: https://www.apache.org/dist/cassandra/redhat/311x/
+    gpgcheck: yes
+    gpgkey: https://www.apache.org/dist/cassandra/KEYS
+    state: present
+  

@@ -1,0 +1,11 @@
+---
+
+- name: install jdk 8
+  yum:
+    name: java-1.8.0-openjdk
+    state: installed
+
+- name: setup java 8 as default
+  alternatives:
+    name: java
+    path: /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java

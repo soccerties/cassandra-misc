@@ -1,0 +1,31 @@
+---
+
+cassandra_conf_dir: "/etc/cassandra/conf"
+cassandra_version: "3.11.2"
+cassandra_package_name: "cassandra"
+cassandra_service_name: "cassandra"
+
+# cassandra.yaml
+cassandra_cluster_name: "defaultcluster"
+cassandra_num_tokens: 64
+cassandra_seeds: "localhost"
+cassandra_listen_address: "localhost"
+
+cassandra_authenticator: PasswordAuthenticator
+cassandra_authorizer: CassandraAuthorizer
+
+cassandra_compaction_throughput_mb_per_sec: 16
+
+cassandra_root_dir: "/var/lib/cassandra"
+cassandra_data_dir: "{{ cassandra_root_dir }}/data"
+cassandra_commitlog_dir: "{{ cassandra_root_dir }}/commitlog"
+cassandra_saved_caches_dir: "{{ cassandra_root_dir }}/saved_caches"
+cassandra_log_dir: "/var/log/cassandra"
+cassandra_hints_dir: "{{ cassandra_root_dir }}/hints"
+
+endpoint_snitch: "GossipingPropertyFileSnitch"
+dc: "dc1"
+rack: "rack1"
+
+cassandra_max_heap_size: "4G"
+cassandra_heap_newsize: "800M"
