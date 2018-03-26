@@ -1,0 +1,25 @@
+---
+
+- name: copy java exporter config
+  copy:
+    src: prometheus_java_exporter.yaml
+    dest: "{{ cassandra_conf_dir }}/prometheus_java_exporter.yaml"
+
+- name: create cassandra lib dir
+  file:
+    path: "{{ cassandra_lib_dir }}"
+    state: directory
+    mode: 0755
+
+- name: copy java exporter jar
+  get_url:
+    url: https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.9/jmx_prometheus_javaagent-0.9.jar
+    dest: "{{ cassandra_lib_dir }}/jmx_prometheus_javaagent.jar"
+    owner: cassandra
+    group: cassandra
+
+- name: add java agent to env file
+  lineinfile:
+    dest: "{{ cassandra_conf_dir }}/cassandra-env.sh"
+    line: "{{ cassandra_prometheus_jvm_opts }}"
+  notify: gracefully restart cassandra

@@ -1,0 +1,20 @@
+---
+
+- name: gracefully restart cassandra 
+  shell: nodetool drain
+  notify:  restart cassandra
+
+- name: restart cassandra
+  service:
+    name: cassandra
+    state: restarted
+
+- name: stop cassandra
+  service:
+    name: cassandra
+    state: stopped
+
+- name: start cassandra
+  service:
+    name: cassandra
+    state: started

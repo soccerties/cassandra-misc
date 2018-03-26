@@ -1,0 +1,6 @@
+---
+
+cassandra_lib_dir: /usr/share/cassandra/lib
+cassandra_conf_dir: /etc/cassandra/conf
+
+cassandra_prometheus_jvm_opts: "JVM_OPTS=\"$JVM_OPTS -javaagent:{{ cassandra_lib_dir }}/jmx_prometheus_javaagent.jar=7070:{{ cassandra_conf_dir }}/prometheus_java_exporter.yaml\""
