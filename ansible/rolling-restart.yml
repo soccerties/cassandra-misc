@@ -1,0 +1,40 @@
+---
+
+- name: Rolling restart
+  hosts: all
+  serial: 1
+  become: true
+  tasks:
+    - name: nodetool drain
+      command: nodetool drain
+
+    - name: stop cassandra
+      service:
+        name: dse
+        state: stopped
+
+    - name: start cassandra
+      service:
+        name: dse
+        state: started
+
+    - name: wait for cassandra jmx port
+      wait_for:
+        port: 7199
+        delay: 5
+
+    - name: nodetool status
+      command: nodetool status
+      register: cassandra_status
+      until: cassandra_status|succeeded
+      retries: 20
+      delay: 1
+      ignore_errors: true
+
+    - name: print status
+      debug:
+        msg: "{{ cassandra_status.stdout_lines }}"
+
+    - name: continue?
+      pause:
+        prompt: "Continue with nest node?"
