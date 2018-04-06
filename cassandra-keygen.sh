@@ -99,6 +99,9 @@ create_node_keystore()
 
   rm -f "$OUTPUT_DIR/extensions.tmp"
 
+  echo "Verifying signed cert for $node"
+  openssl verify -CAfile "$OUTPUT_DIR/$ROOT_CN.crt" "$OUTPUT_DIR/$node.crt_signed"
+
   echo "Importing signed CRT for $node"
   $KEYTOOL -importcert -keystore "$OUTPUT_DIR/$node.jks" -alias $node -file "$OUTPUT_DIR/$node.crt_signed" \
     -noprompt -storepass "${KEYSTORE_PASS}" -keypass "${KEYSTORE_PASS}"
