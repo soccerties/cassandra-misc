@@ -1,0 +1,96 @@
+---
+
+-
+  name: Upgrade Cassandra
+  hosts: all
+  serial: 1
+  become: true
+  vars:
+    current_cassandra_package: cassandra-3.0.16
+    new_cassandra_package: cassandra-3.11.2
+    cassandra_conf_dir: /etc/cassandra/conf
+    conf_backup_dir: /opt/backups
+    run_time: "{{ ansible_date_time.iso8601 }}"
+  tasks:
+    - name: output time
+      debug:
+        msg: "{{ run_time }}"
+
+    - name: create backup conf dir
+      file:
+        path: "{{ conf_backup_dir }}"
+        state: directory
+        mode: 0755
+
+    - name: backup conf files
+      command: cp -a "{{ cassandra_conf_dir }}" "{{ conf_backup_dir }}"
+
+    - name: take snapshot
+      command: nodetool snapshot -t "pre-cassandra-upgrade-{{ run_time }}"
+
+    - name: nodetool drain
+      command: nodetool drain
+
+    - name: stop cassandra
+      service:
+        name: cassandra
+        state: stopped
+
+    - name: remove current cassandra
+      yum:
+        name: "{{ current_cassandra_package }}"
+        state: removed
+
+    - name: install new cassandra
+      yum:
+        name: "{{ new_cassandra_package }}"
+        state: present
+
+    # Here's an example of how to populate config files with templates
+    #- name: copy cassandra.yaml template
+    #  template:
+    #    src: templates-3.11.2/cassandra.yaml.j2
+    #    dest: "{{ cassandra_conf_dir }}/cassandra.yaml"
+
+    - name: start cassandra
+      service:
+        name: cassandra
+        state: started
+
+    - name: wait for cassandra jmx port
+      wait_for:
+        port: 7199
+        delay: 5
+
+    - name: unthrottle compaction throughput
+      command: nodetool setcompactionthroughput 0
+
+    - name: sstables upgrade
+      command: nodetool upgradesstables
+
+    - name: revert compaction throughput
+      command: nodetool setcompactionthroughput 64
+
+    - name: nodetool status
+      command: nodetool status
+      register: cassandra_status
+      until: cassandra_status|succeeded
+      retries: 20
+      delay: 1
+      ignore_errors: true
+
+    - name: print status
+      debug:
+        msg: "{{ cassandra_status.stdout_lines }}"
+
+    - name: nodetool version
+      command: nodetool version
+      register: nodetool_version
+
+    - name: print version
+      debug:
+        msg: "{{ nodetool_version.stdout_lines }}"
+
+    - name: continue?
+      pause:
+        prompt: "Continue with next node?"
