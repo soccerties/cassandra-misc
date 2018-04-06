@@ -34,9 +34,9 @@ ROOT_CN="ABC-rootCA"
 CERT_OU="Cassandra"
 CERT_O="ABC-Company"
 CERT_C="US"
-keysize=2048
+KEYSIZE=2048
 ```
 Then execute the script.
 ```
-cassandra-keygen.sh test-node1.example.com test-node2.example.com test-node3.example.com
+cassandra-keygen.s 192.168.0.101 192.168.0.102 192.168.0.103
 ```

@@ -15,8 +15,8 @@ ROOT_CN="ABC-rootCA"
 CERT_OU="Cassandra"
 CERT_O="ABC-Company"
 CERT_C="US"
-keysize=2048
-
+KEYSIZE=2048
+SAN_EXTENSION="IP"
 CLUSTER_NODES="$@"
 
 KEYTOOL=`which keytool`
@@ -79,7 +79,7 @@ create_node_keystore()
   echo "Creating key pair for $node"
   $KEYTOOL -genkeypair -keyalg RSA -alias $node -keystore "$OUTPUT_DIR/$node.jks" \
     -storepass "${KEYSTORE_PASS}" -keypass "${KEYSTORE_PASS}" -validity $CERT_VALIDITY -deststoretype pkcs12 \
-    -keysize $keysize -dname "CN=$node, OU=$CERT_OU, O=$CERT_O, C=$CERT_C" -ext "SAN=ip:$node"
+    -keysize $KEYSIZE -dname "CN=$node, OU=$CERT_OU, O=$CERT_O, C=$CERT_C" -ext "SAN=$SAN_EXTENSION:$node"
 
   echo "Adding CA cert to $node keystore"
   $KEYTOOL -importcert -keystore "$OUTPUT_DIR/$node.jks" -alias $ROOT_CN -file "$OUTPUT_DIR/$ROOT_CN.crt" -noprompt \
@@ -87,10 +87,10 @@ create_node_keystore()
 
   echo "Generating CSR for $node"
   $KEYTOOL -certreq -keystore "$OUTPUT_DIR/$node.jks" -alias $node -file "$OUTPUT_DIR/$node.csr" -storepass "${KEYSTORE_PASS}" \
-    -keypass "${KEYSTORE_PASS}" -dname "CN=$node, OU=$CERT_OU, O=$CERT_O, C=$CERT_C" -ext "SAN=ip:$node"
+    -keypass "${KEYSTORE_PASS}" -dname "CN=$node, OU=$CERT_OU, O=$CERT_O, C=$CERT_C" -ext "SAN=$SAN_EXTENSION:$node"
 
   #temp file to add SAN extensions to the signed cert
-  echo "[ext]\nsubjectAltName = DNS:$node" > "$OUTPUT_DIR/extensions.tmp"
+  echo "[ext]\nsubjectAltName = $SAN_EXTENSION:$node" > "$OUTPUT_DIR/extensions.tmp"
 
   echo "Signing CSR for $node"
   openssl x509 -req -CA "$OUTPUT_DIR/$ROOT_CN.crt" -CAkey "$OUTPUT_DIR/$ROOT_CN.key" -in "$OUTPUT_DIR/$node.csr" \
